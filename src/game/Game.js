@@ -42,6 +42,7 @@ export class Game {
         this.scoreMultiplier = 1;
         this.multiplierEndTime = 0;
         this.extraClick = false;
+        this.pendingExplosions = 0;
 
         // Preview
         this.preview = new PreviewCircle();
@@ -260,6 +261,7 @@ export class Game {
         this.multiplierEndTime = 0;
         this.extraClick = false;
         this.activePowerUps = [];
+        this.pendingExplosions = 0;
 
         // Create balls
         this.createBalls(config);
@@ -396,8 +398,12 @@ export class Game {
             // Each family member has a special effect!
             if (ball.faceId === 'papa') {
                 // Oppi: Größere Explosion - triggers another explosion
+                this.pendingExplosions++;
                 setTimeout(() => {
-                    this.createExplosion(ball.x, ball.y, ball.color, explosionRadius * 1.8, config.explosionDuration);
+                    this.pendingExplosions--;
+                    if (this.state === 'playing') {
+                        this.createExplosion(ball.x, ball.y, ball.color, explosionRadius * 1.8, config.explosionDuration);
+                    }
                 }, 200);
                 this.showBonus('💥 OPPI-POWER!', ball.x, ball.y - 50);
             } else if (ball.faceId === 'mama') {
@@ -418,7 +424,9 @@ export class Game {
             this.audio.playGhostExplosion();
         } else if (ball.type === 'bomber') {
             this.audio.playBomberExplosion();
+            this.pendingExplosions++;
             setTimeout(() => {
+                this.pendingExplosions--;
                 if (this.state === 'playing') {
                     this.createExplosion(ball.x, ball.y, ball.color, explosionRadius * 1.5, config.explosionDuration, ball.x, ball.y);
                 }
@@ -429,8 +437,12 @@ export class Game {
             const target = ball.findChainTarget(balls);
             if (target) {
                 this.engine.addEntity(new ChainLine(ball.x, ball.y, target.x, target.y, config.scale));
+                this.pendingExplosions++;
                 setTimeout(() => {
-                    if (target.alive) this.triggerBallExplosion(target, ball.x, ball.y);
+                    this.pendingExplosions--;
+                    if (target.alive && this.state === 'playing') {
+                        this.triggerBallExplosion(target, ball.x, ball.y);
+                    }
                 }, 50);
             }
         } else {
@@ -479,8 +491,8 @@ export class Game {
             setTimeout(() => this.currentWave++, 50);
         }
 
-        // Check game end
-        if (explosions.length === 0 && this.clickUsed) {
+        // Check game end - wait for all explosions including pending delayed ones
+        if (explosions.length === 0 && this.pendingExplosions === 0 && this.clickUsed) {
             this.endRound();
         }
     }
