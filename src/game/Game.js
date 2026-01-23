@@ -341,6 +341,7 @@ export class Game {
         this.showInstructions();
         this.ui.result.classList.remove('visible');
         this.ui.nextBtn.style.display = 'none';
+        this.ui.restartBtn.style.display = 'inline-block';
         this.engine.resume();
         this.updateUI();
     }
