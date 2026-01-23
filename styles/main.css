@@ -1052,7 +1052,7 @@ canvas {
 
 .name-input-row input {
     font-family: 'Space Mono', monospace;
-    font-size: 0.85rem;
+    font-size: 16px; /* Prevents iOS auto-zoom */
     padding: 8px 12px;
     border: 1px solid rgba(126, 232, 250, 0.4);
     background: rgba(126, 232, 250, 0.1);
@@ -1151,7 +1151,7 @@ canvas {
 
     .name-input-row input {
         width: 120px;
-        font-size: 0.8rem;
+        font-size: 16px; /* Prevents iOS auto-zoom */
         padding: 7px 10px;
     }
 
