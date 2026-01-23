@@ -62,7 +62,6 @@ export class Game {
             nextBtn: document.getElementById('nextBtn'),
             restartBtn: document.getElementById('restartBtn'),
             pauseRestartBtn: document.getElementById('pauseRestartBtn'),
-            soundToggle: document.getElementById('soundToggle'),
             canvasWrapper: document.getElementById('canvasWrapper')
         };
 
@@ -173,7 +172,6 @@ export class Game {
             }
         });
         this.ui.nextBtn.addEventListener('click', () => this.nextLevel());
-        this.ui.soundToggle.addEventListener('click', () => this.toggleSound());
         this.ui.pauseRestartBtn.addEventListener('click', () => {
             this.ui.pauseOverlay.classList.remove('visible');
             this.engine.resume();
@@ -308,13 +306,6 @@ export class Game {
             const isPaused = this.engine.togglePause();
             this.ui.pauseOverlay.classList.toggle('visible', isPaused);
         }
-    }
-
-    toggleSound() {
-        this.audio.init();
-        const enabled = this.audio.toggle();
-        this.ui.soundToggle.textContent = enabled ? '🔊' : '🔇';
-        this.ui.soundToggle.classList.toggle('muted', !enabled);
     }
 
     initLevel() {
