@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="theme-color" content="#0a0a12">
+    <title>Knallbum-Man</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="styles/main.css">
+</head>
+<body>
+    <div class="game-container" id="gameContainer">
+        <div class="header">
+            <h1 class="title">KNALLBUM-MAN</h1>
+            <div class="stats">
+                <div class="stat">
+                    <span class="stat-label">Ziel</span>
+                    <span class="stat-value" id="target">0 / 0</span>
+                </div>
+                <div class="stat">
+                    <span class="stat-label">Combo</span>
+                    <span class="stat-value highlight" id="combo">x1</span>
+                </div>
+                <div class="stat">
+                    <span class="stat-label">Punkte</span>
+                    <span class="stat-value" id="score">0</span>
+                </div>
+                <div class="stat">
+                    <span class="stat-label">Rekord</span>
+                    <span class="stat-value" id="highscore">0</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="progress-bar">
+            <div class="progress-fill" id="progress"></div>
+        </div>
+
+        <div class="canvas-wrapper" id="canvasWrapper">
+            <canvas id="gameCanvas"></canvas>
+            <button class="sound-toggle" id="soundToggle" title="Sound an/aus">🔊</button>
+
+            <div class="overlay visible" id="instructions">
+                <h2>Tippe um zu starten</h2>
+                <p>Starte eine Kettenreaktion und triff genug Kugeln.<br>Jede explodierende Kugel kann andere auslösen.</p>
+                <p class="hint">Leertaste/Doppeltipp = Pause</p>
+            </div>
+
+            <div class="overlay" id="result">
+                <h2></h2>
+                <p></p>
+                <div class="chain-stats" id="chainStats"></div>
+            </div>
+
+            <div class="pause-overlay" id="pauseOverlay">
+                <h2>⏸ Pausiert</h2>
+                <p>Leertaste/Doppeltipp zum Fortsetzen</p>
+                <button class="btn pause-restart-btn" id="pauseRestartBtn">Von vorne</button>
+            </div>
+        </div>
+
+        <div class="controls">
+            <span class="level-indicator">Level <span id="level">1</span></span>
+            <button class="btn" id="restartBtn">Neustart</button>
+            <button class="btn secondary" id="nextBtn" style="display: none;">Weiter →</button>
+        </div>
+    </div>
+
+    <script type="module" src="src/main.js"></script>
+</body>
+</html>
