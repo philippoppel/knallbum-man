@@ -164,7 +164,14 @@ export class Game {
     }
 
     setupUIHandlers() {
-        this.ui.restartBtn.addEventListener('click', () => this.restart());
+        this.ui.restartBtn.addEventListener('click', () => {
+            // Shuffle balls if waiting, full restart if game over
+            if (this.state === 'waiting' && !this.clickUsed) {
+                this.shuffleBalls();
+            } else {
+                this.restart();
+            }
+        });
         this.ui.nextBtn.addEventListener('click', () => this.nextLevel());
         this.ui.soundToggle.addEventListener('click', () => this.toggleSound());
         this.ui.pauseRestartBtn.addEventListener('click', () => {
@@ -408,6 +415,30 @@ export class Game {
 
         this.ui.instructions.innerHTML = html;
         this.ui.instructions.classList.add('visible');
+
+        // Auto-hide overlay after 3 seconds
+        clearTimeout(this.overlayTimeout);
+        this.overlayTimeout = setTimeout(() => {
+            this.ui.instructions.classList.remove('visible');
+        }, 3000);
+    }
+
+    shuffleBalls() {
+        // Reposition all balls randomly without changing their types
+        const config = this.getConfig();
+        const balls = this.engine.entities.filter(e => e instanceof Ball && e.alive);
+
+        balls.forEach(ball => {
+            const margin = ball.radius * 2;
+            ball.x = margin + Math.random() * (this.engine.width - margin * 2);
+            ball.y = margin + Math.random() * (this.engine.height - margin * 2);
+
+            // New random direction
+            const angle = Math.random() * Math.PI * 2;
+            const speed = Math.sqrt(ball.vx * ball.vx + ball.vy * ball.vy);
+            ball.vx = Math.cos(angle) * speed;
+            ball.vy = Math.sin(angle) * speed;
+        });
     }
 
     createExplosion(x, y, color, radius, duration, sourceX, sourceY) {
@@ -786,6 +817,13 @@ export class Game {
 
         const progress = Math.min(100, (this.caughtThisRound / config.targetCount) * 100);
         this.ui.progress.style.width = `${progress}%`;
+
+        // Update restart button text based on state
+        if (this.state === 'waiting' && !this.clickUsed) {
+            this.ui.restartBtn.textContent = '🔀 Mischen';
+        } else {
+            this.ui.restartBtn.textContent = 'Nochmal!';
+        }
     }
 
     restart() {
