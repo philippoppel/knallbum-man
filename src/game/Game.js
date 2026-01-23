@@ -68,11 +68,78 @@ export class Game {
 
         this.setupInputHandlers();
         this.setupUIHandlers();
+        this.setupVisibilityHandler();
 
         // Preload face images then start
         preloadFaces().then(() => {
-            this.initLevel();
+            // Try to restore saved game state
+            if (!this.restoreGameState()) {
+                this.initLevel();
+            }
         });
+    }
+
+    setupVisibilityHandler() {
+        // Save game when user switches away (mobile app switch, tab change)
+        document.addEventListener('visibilitychange', () => {
+            if (document.hidden) {
+                this.saveGameState();
+            }
+        });
+
+        // Also save on page unload
+        window.addEventListener('pagehide', () => {
+            this.saveGameState();
+        });
+    }
+
+    saveGameState() {
+        // Only save if game is in progress (not ended, not at start)
+        if (this.state === 'ended' || (this.state === 'waiting' && !this.clickUsed && this.score === 0)) {
+            return;
+        }
+
+        const state = {
+            level: this.level,
+            score: this.score,
+            timestamp: Date.now()
+        };
+
+        localStorage.setItem('knallbumman-gamestate', JSON.stringify(state));
+    }
+
+    restoreGameState() {
+        try {
+            const saved = localStorage.getItem('knallbumman-gamestate');
+            if (!saved) return false;
+
+            const state = JSON.parse(saved);
+
+            // Only restore if saved less than 1 hour ago
+            if (Date.now() - state.timestamp > 60 * 60 * 1000) {
+                localStorage.removeItem('knallbumman-gamestate');
+                return false;
+            }
+
+            // Restore state
+            this.level = state.level;
+            this.score = state.score;
+
+            // Clear saved state
+            localStorage.removeItem('knallbumman-gamestate');
+
+            // Start at the saved level
+            this.initLevel();
+            this.showBonus('⏸️ Fortgesetzt!', this.engine.width / 2, this.engine.height / 2);
+
+            return true;
+        } catch (e) {
+            return false;
+        }
+    }
+
+    clearGameState() {
+        localStorage.removeItem('knallbumman-gamestate');
     }
 
     getConfig() {
@@ -726,6 +793,7 @@ export class Game {
         this.level = 1;
         this.score = 0;
         this.ui.restartBtn.textContent = 'Neustart';
+        this.clearGameState();
         this.initLevel();
     }
 
