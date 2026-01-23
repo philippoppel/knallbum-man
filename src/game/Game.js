@@ -109,10 +109,10 @@ export class Game {
 
     handleClick(x, y) {
         if (this.state === 'ended' || this.engine.isPaused) return;
-        if (this.clickUsed && !this.extraClick) return;
+        if (this.state !== 'waiting') return;
 
-        // Use extra click from Nico if available
-        if (this.clickUsed && this.extraClick) {
+        // Consume extra click if this is the second click
+        if (this.extraClick) {
             this.extraClick = false;
         }
 
@@ -493,7 +493,15 @@ export class Game {
 
         // Check game end - wait for all explosions including pending delayed ones
         if (explosions.length === 0 && this.pendingExplosions === 0 && this.clickUsed) {
-            this.endRound();
+            // If player has extra click from Nico, let them use it
+            if (this.extraClick) {
+                this.state = 'waiting';
+                this.clickUsed = false;
+                this.preview.setVisible(true);
+                this.showBonus('👆 NOCHMAL KLICKEN!', this.engine.width / 2, this.engine.height / 2);
+            } else {
+                this.endRound();
+            }
         }
     }
 
