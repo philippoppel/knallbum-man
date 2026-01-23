@@ -191,11 +191,10 @@ canvas {
     width: 90%;
     max-height: 90%;
     overflow-y: auto;
-    background: rgba(10, 10, 18, 0.85);
-    backdrop-filter: blur(8px);
-    -webkit-backdrop-filter: blur(8px);
+    background: rgba(10, 10, 18, 0.6);
+    backdrop-filter: blur(4px);
+    -webkit-backdrop-filter: blur(4px);
     border-radius: 12px;
-    border: 1px solid rgba(126, 232, 250, 0.1);
 }
 
 .overlay.visible {

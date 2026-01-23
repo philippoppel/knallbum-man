@@ -81,7 +81,7 @@ export class Game {
     // What unlocks at each level - shown visually with explanation
     getUnlocks(level) {
         const unlocks = [];
-        if (level === 3) unlocks.push({ emoji: '⭐', name: 'Power-Ups', desc: 'Sammle leuchtende Symbole!' });
+        if (level === 3) unlocks.push({ emoji: '⭐', name: 'Power-Ups', desc: '💥2x Explosion · ✨3x Punkte · 🐌Zeitlupe · ❄️Einfrieren' });
         if (level === 5) unlocks.push({ emoji: '✂️', name: 'Splitter-Kugeln', desc: 'Teilt sich in 3 kleine Kugeln' });
         if (level === 7) unlocks.push({ emoji: '👻', name: 'Geister-Kugeln', desc: 'Halb-durchsichtig, extra Punkte' });
         if (level === 10) unlocks.push({ emoji: '💣', name: 'Bomber-Kugeln', desc: 'Explodiert nochmal nach kurzer Zeit' });
