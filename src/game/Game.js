@@ -652,17 +652,10 @@ export class Game {
             overlay.appendChild(p);
             this.showChainStats(overlay);
 
-            // Check for new highscore and show leaderboard
+            // Check for new highscore
             const isNewHighscore = this.score > this.highscore;
-            if (isNewHighscore) {
-                this.highscore = this.score;
-            }
 
-            // Submit score to leaderboard
-            const submittedEntryId = this.leaderboard.submitScore(this.score, this.caughtThisRound, this.maxCombo, this.level);
-            this.lastSubmittedEntryId = submittedEntryId;
-
-            // Show leaderboard
+            // Show leaderboard with name input (score only saved if name entered)
             this.showLeaderboard(overlay, isNewHighscore);
 
             // Show restart button (full reset), hide next
@@ -705,48 +698,62 @@ export class Game {
         const leaderboardDiv = document.createElement('div');
         leaderboardDiv.className = 'leaderboard-section';
 
-        // Name input for new highscore
-        if (isNewHighscore) {
-            const nameSection = document.createElement('div');
-            nameSection.className = 'name-input-section';
-            nameSection.innerHTML = `
-                <div class="new-highscore-banner">🏆 Neuer Rekord!</div>
-                <div class="name-input-row">
-                    <input type="text" id="playerNameInput" placeholder="Dein Name" maxlength="15"
-                           value="${this.leaderboard.playerName || ''}" />
-                    <button id="saveNameBtn" class="btn small">OK</button>
-                </div>
-            `;
-            leaderboardDiv.appendChild(nameSection);
+        // Always show name input - score only saved if name entered
+        const nameSection = document.createElement('div');
+        nameSection.className = 'name-input-section';
+        nameSection.innerHTML = `
+            <div class="new-highscore-banner">${isNewHighscore ? '🏆 Neuer Rekord!' : '📝 Score speichern?'}</div>
+            <div class="name-input-row">
+                <input type="text" id="playerNameInput" placeholder="Dein Name" maxlength="15"
+                       value="${this.leaderboard.playerName || ''}" />
+                <button id="saveNameBtn" class="btn small">Speichern</button>
+            </div>
+        `;
+        leaderboardDiv.appendChild(nameSection);
 
-            // Add event listener after appending
-            setTimeout(() => {
-                const input = document.getElementById('playerNameInput');
-                const saveBtn = document.getElementById('saveNameBtn');
-                if (input && saveBtn) {
-                    input.focus();
-                    const saveName = () => {
-                        const name = input.value.trim();
-                        if (name) {
-                            this.leaderboard.savePlayerName(name);
-                            // Update the submitted entry with the new name
-                            if (this.lastSubmittedEntryId) {
-                                const entry = this.leaderboard.entries.find(e => e.id === this.lastSubmittedEntryId);
-                                if (entry) {
-                                    entry.name = name;
-                                    this.leaderboard.saveLocal();
-                                }
-                            }
-                            this.refreshLeaderboardDisplay();
+        // Add event listener after appending
+        setTimeout(() => {
+            const input = document.getElementById('playerNameInput');
+            const saveBtn = document.getElementById('saveNameBtn');
+            if (input && saveBtn) {
+                input.focus();
+                let saved = false;
+                const saveName = () => {
+                    if (saved) return;
+                    const name = input.value.trim();
+                    if (name) {
+                        saved = true;
+                        this.leaderboard.savePlayerName(name);
+
+                        // Submit score to leaderboard now
+                        const entryId = this.leaderboard.submitScore(this.score, this.caughtThisRound, this.maxCombo, this.level);
+
+                        // Update the entry with the name
+                        const entry = this.leaderboard.entries.find(e => e.id === entryId);
+                        if (entry) {
+                            entry.name = name;
+                            this.leaderboard.saveLocal();
                         }
-                    };
-                    saveBtn.addEventListener('click', saveName);
-                    input.addEventListener('keypress', (e) => {
-                        if (e.key === 'Enter') saveName();
-                    });
-                }
-            }, 50);
-        }
+
+                        // Update highscore if needed
+                        if (this.score > this.highscore) {
+                            this.highscore = this.score;
+                        }
+
+                        // Update UI
+                        saveBtn.textContent = '✓ Gespeichert';
+                        saveBtn.disabled = true;
+                        input.disabled = true;
+                        this.refreshLeaderboardDisplay();
+                        this.updateUI();
+                    }
+                };
+                saveBtn.addEventListener('click', saveName);
+                input.addEventListener('keypress', (e) => {
+                    if (e.key === 'Enter') saveName();
+                });
+            }
+        }, 50);
 
         // Leaderboard title
         const title = document.createElement('div');
