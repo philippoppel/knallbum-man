@@ -29,14 +29,27 @@ export function getLevelConfig(level, canvasWidth = BASE_WIDTH, canvasHeight = B
     const scaleY = canvasHeight / BASE_HEIGHT;
     const scale = Math.min(scaleX, scaleY);
 
+    const ballCount = Math.min(6 + level * 3, 40);
+
+    // Target percentage increases: 50% at level 1 → 70% at level 20
+    const targetPercent = Math.min(0.5 + level * 0.01, 0.7);
+    const targetCount = Math.max(3, Math.floor(ballCount * targetPercent));
+
+    // Ball speed increases faster in higher levels
+    const ballSpeed = Math.min(0.4 + level * 0.12, 2.2) * scale;
+
+    // Minimum distance between balls increases (more spread out)
+    const minBallDistance = Math.min(30 + level * 2, 60) * scale;
+
     return {
-        ballCount: Math.min(6 + level * 3, 40),
-        targetCount: Math.min(2 + Math.floor(level * 1.2), 28),
-        ballSpeed: Math.min(0.3 + level * 0.08, 1.8) * scale,
+        ballCount,
+        targetCount,
+        ballSpeed,
         explosionRadius: Math.max(75 - level * 1.5, 45) * scale,
         explosionDuration: Math.max(2.8 - level * 0.04, 1.8),
         ballRadiusMin: 12 * scale,
         ballRadiusMax: 20 * scale,
+        minBallDistance,
         scale: scale
     };
 }

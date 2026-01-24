@@ -358,6 +358,9 @@ export class Game {
         // Face balls - 1-2 per level, bonus points!
         const faceCount = Math.min(2, Math.floor(this.level / 3) + 1);
 
+        // Track placed ball positions for minimum distance
+        const placedPositions = [];
+
         for (let i = 0; i < totalBalls; i++) {
             let ball;
             const rand = Math.random();
@@ -377,7 +380,35 @@ export class Game {
                 ball = Ball.createRandom(this.engine.width, this.engine.height, config.ballSpeed, config.ballRadiusMin, config.ballRadiusMax);
             }
 
+            // Try to place ball with minimum distance from others
+            this.spreadBall(ball, placedPositions, config.minBallDistance);
+            placedPositions.push({ x: ball.x, y: ball.y });
+
             this.engine.addEntity(ball);
+        }
+    }
+
+    spreadBall(ball, placedPositions, minDistance) {
+        const maxAttempts = 20;
+        const margin = ball.radius * 2;
+
+        for (let attempt = 0; attempt < maxAttempts; attempt++) {
+            ball.x = margin + Math.random() * (this.engine.width - margin * 2);
+            ball.y = margin + Math.random() * (this.engine.height - margin * 2);
+
+            // Check distance from all placed balls
+            let tooClose = false;
+            for (const pos of placedPositions) {
+                const dx = ball.x - pos.x;
+                const dy = ball.y - pos.y;
+                const dist = Math.sqrt(dx * dx + dy * dy);
+                if (dist < minDistance) {
+                    tooClose = true;
+                    break;
+                }
+            }
+
+            if (!tooClose) break;
         }
     }
 
@@ -419,11 +450,12 @@ export class Game {
         // Reposition all balls randomly without changing their types
         const config = this.getConfig();
         const balls = this.engine.entities.filter(e => e instanceof Ball && e.alive);
+        const placedPositions = [];
 
         balls.forEach(ball => {
-            const margin = ball.radius * 2;
-            ball.x = margin + Math.random() * (this.engine.width - margin * 2);
-            ball.y = margin + Math.random() * (this.engine.height - margin * 2);
+            // Spread with minimum distance
+            this.spreadBall(ball, placedPositions, config.minBallDistance);
+            placedPositions.push({ x: ball.x, y: ball.y });
 
             // New random direction
             const angle = Math.random() * Math.PI * 2;
