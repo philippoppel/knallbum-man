@@ -148,7 +148,7 @@ export class Game {
     // What unlocks at each level - shown visually with explanation
     getUnlocks(level) {
         const unlocks = [];
-        if (level === 3) unlocks.push({ emoji: '⭐', name: 'Power-Ups', desc: '💥2x Explosion · ✨3x Punkte · 🐌Zeitlupe · ❄️Einfrieren' });
+        if (level === 1) unlocks.push({ emoji: '⭐', name: 'Power-Ups', desc: '💥2x Explosion · ✨3x Punkte · 🐌Zeitlupe · ❄️Einfrieren' });
         if (level === 5) unlocks.push({ emoji: '✂️', name: 'Splitter-Kugeln', desc: 'Teilt sich in 3 kleine Kugeln' });
         if (level === 7) unlocks.push({ emoji: '👻', name: 'Geister-Kugeln', desc: 'Halb-durchsichtig, extra Punkte' });
         if (level === 10) unlocks.push({ emoji: '💣', name: 'Bomber-Kugeln', desc: 'Explodiert nochmal nach kurzer Zeit' });
@@ -164,7 +164,7 @@ export class Game {
 
     setupUIHandlers() {
         this.ui.restartBtn.addEventListener('click', () => {
-            // Shuffle balls if waiting, full restart if game over
+            // Shuffle balls if waiting, retry level if failed
             if (this.state === 'waiting' && !this.clickUsed) {
                 this.shuffleBalls();
             } else {
@@ -175,7 +175,7 @@ export class Game {
         this.ui.pauseRestartBtn.addEventListener('click', () => {
             this.ui.pauseOverlay.classList.remove('visible');
             this.engine.resume();
-            this.restart();
+            this.fullRestart();
         });
     }
 
@@ -331,10 +331,16 @@ export class Game {
         // Create balls
         this.createBalls(config);
 
-        // Maybe spawn power-up (from level 3)
-        if (this.level >= 3 && Math.random() < 0.3 + this.level * 0.02) {
+        // Spawn power-ups (from level 1, with chance for a second one at higher levels)
+        const powerUpChance = Math.min(0.5 + this.level * 0.03, 0.9);
+        if (Math.random() < powerUpChance) {
             const powerUp = PowerUp.createRandom(this.engine.width, this.engine.height, config.scale);
             this.engine.addEntity(powerUp);
+        }
+        // Second power-up from level 8+
+        if (this.level >= 8 && Math.random() < 0.4) {
+            const powerUp2 = PowerUp.createRandom(this.engine.width, this.engine.height, config.scale);
+            this.engine.addEntity(powerUp2);
         }
 
         // Update UI
@@ -669,31 +675,33 @@ export class Game {
 
             this.audio.playSuccess();
         } else {
-            // GAME OVER - 1 Leben!
+            // Level failed - retry the same level (keep score)
             overlay.className = 'overlay visible fail';
-            h2.textContent = '💀 GAME OVER';
+            h2.textContent = 'Knapp daneben!';
 
-            const finalScore = document.createElement('div');
-            finalScore.className = 'final-score';
-            finalScore.innerHTML = `<span>Endpunktzahl</span><strong>${this.score.toLocaleString()}</strong>`;
+            p.textContent = `${this.caughtThisRound}/${config.targetCount} Kugeln - noch ${config.targetCount - this.caughtThisRound} gefehlt`;
 
-            p.textContent = `Level ${this.level} • ${this.caughtThisRound}/${config.targetCount} Kugeln`;
+            // Encouragement based on how close they were
+            const ratio = this.caughtThisRound / config.targetCount;
+            const tip = document.createElement('p');
+            tip.style.cssText = 'font-size: 0.8rem; color: var(--text-muted); margin-top: 6px;';
+            if (ratio >= 0.8) {
+                tip.textContent = 'Fast geschafft! Versuch es nochmal!';
+            } else if (ratio >= 0.5) {
+                tip.textContent = 'Tipp: Klicke dort wo viele Kugeln nah beieinander sind';
+            } else {
+                tip.textContent = 'Tipp: Warte bis sich Kugeln in der Mitte sammeln';
+            }
 
             overlay.appendChild(h2);
-            overlay.appendChild(finalScore);
             overlay.appendChild(p);
+            overlay.appendChild(tip);
             this.showChainStats(overlay);
 
-            // Check for new highscore
-            const isNewHighscore = this.score > this.highscore;
-
-            // Show leaderboard with name input (score only saved if name entered)
-            this.showLeaderboard(overlay, isNewHighscore);
-
-            // Show restart button (full reset), hide next
+            // Retry button (same level, keep score)
             this.ui.nextBtn.style.display = 'none';
             this.ui.restartBtn.style.display = 'inline-block';
-            this.ui.restartBtn.textContent = 'Nochmal!';
+            this.ui.restartBtn.textContent = 'Nochmal versuchen!';
 
             this.audio.playGameOver();
         }
@@ -858,6 +866,12 @@ export class Game {
     }
 
     restart() {
+        // Retry current level (keep score and progress)
+        this.clearGameState();
+        this.initLevel();
+    }
+
+    fullRestart() {
         // Full reset - back to level 1 with score 0
         this.level = 1;
         this.score = 0;

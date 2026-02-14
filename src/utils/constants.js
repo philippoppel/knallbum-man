@@ -11,7 +11,7 @@ export const BALL_COLORS = [
     { main: '#ff9b9b', glow: 'rgba(255, 155, 155, 0.4)' }
 ];
 
-export const COMBO_TIME_WINDOW = 800; // ms
+export const COMBO_TIME_WINDOW = 1200; // ms - generous window for satisfying chain reactions
 
 export const STORAGE_KEYS = {
     HIGHSCORE: 'knallbumman-highscore',
@@ -31,22 +31,22 @@ export function getLevelConfig(level, canvasWidth = BASE_WIDTH, canvasHeight = B
 
     const ballCount = Math.min(6 + level * 3, 40);
 
-    // Target percentage increases: 50% at level 1 → 70% at level 20
-    const targetPercent = Math.min(0.5 + level * 0.01, 0.7);
+    // Target percentage increases gently: 45% at level 1 → 60% at level 20
+    const targetPercent = Math.min(0.45 + level * 0.01, 0.60);
     const targetCount = Math.max(3, Math.floor(ballCount * targetPercent));
 
-    // Ball speed increases faster in higher levels
-    const ballSpeed = Math.min(0.4 + level * 0.12, 2.2) * scale;
+    // Ball speed increases gradually (slower ramp, lower cap)
+    const ballSpeed = Math.min(0.5 + level * 0.08, 1.8) * scale;
 
-    // Minimum distance between balls increases (more spread out)
-    const minBallDistance = Math.min(30 + level * 2, 60) * scale;
+    // Minimum distance between balls increases slowly (closer = easier chains)
+    const minBallDistance = Math.min(25 + level * 1.5, 50) * scale;
 
     return {
         ballCount,
         targetCount,
         ballSpeed,
-        explosionRadius: Math.max(75 - level * 1.5, 45) * scale,
-        explosionDuration: Math.max(2.8 - level * 0.04, 1.8),
+        explosionRadius: Math.max(80 - level * 1.0, 55) * scale,
+        explosionDuration: Math.max(3.0 - level * 0.03, 2.0),
         ballRadiusMin: 12 * scale,
         ballRadiusMax: 20 * scale,
         minBallDistance,
